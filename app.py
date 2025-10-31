@@ -17,23 +17,28 @@ st.title("📊 Tablero de Digitalización de Planta")
 st.write("Visualización de datos desde InfluxDB en tiempo real.")
 
 sensor = st.selectbox("Selecciona el sensor:", ["DHT22", "MPU6050"])
-rango = st.slider(
-    "Selecciona el rango de tiempo (días hacia atrás):",
-    min_value=1, max_value=7, value=1
+start = st.slider(
+    "Selecciona el rango de tiempo de inicio (start):",
+    min_value=1, max_value=15, value=15
+)
+
+stop = st.slider(
+    "Selecciona el rango de tiempo de finalización (stop):",
+    min_value=5, max_value=15, value=9
 )
 
 # --- Consulta dinámica ---
 if sensor == "DHT22":
     query = f'''
     from(bucket: "{INFLUXDB_BUCKET}")
-        |> range(start: -{rango}d)
+        |> range(start: -{start}d, stop: -{stop}d)
         |> filter(fn: (r) => r._measurement == "studio-dht22")
         |> filter(fn: (r) => r._field == "humedad" or r._field == "temperatura" or r._field == "sensacion_termica")
     '''
 else:
     query = f'''
     from(bucket: "{INFLUXDB_BUCKET}")
-        |> range(start: -{rango}d)
+        |> range(start: -{start}d, stop: -{stop}d)
         |> filter(fn: (r) => r._measurement == "mpu6050")
         |> filter(fn: (r) =>
             r._field == "accel_x" or r._field == "accel_y" or r._field == "accel_z" or
